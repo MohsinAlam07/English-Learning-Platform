@@ -1,3 +1,22 @@
+const createElement=(arr)=>{
+   const htmlElements=arr.map(el=>`<span class="btn gap-3">${el}<span>`);
+   return(htmlElements.join(" "));
+}
+const manageSpinner=(status)=>{
+    if(status==true){
+        document.getElementById("spinner").classList.remove("hidden");
+        document.getElementById("word-container").classList.add("hidden");
+    }
+    else{
+        document.getElementById("word-container").classList.remove("hidden");
+        document.getElementById("spinner").classList.add("hidden");
+
+    }
+
+}
+
+
+
 const loadLessons = () => {
   fetch("https://openapi.programming-hero.com/api/levels/all")
     .then((response) => response.json())
@@ -10,7 +29,41 @@ const removeActive = () => {
     btn.classList.remove("active");
   })
 };
+const loadWordDetail=async(id)=>{
+    const url=`https://openapi.programming-hero.com/api/word/${id}`;
+   const res=await fetch(url);
+   const details=await res.json();
+   displayWordDetails(details.data)
+
+}
+const displayWordDetails=(word)=>{
+    // console.log(word)
+    const detailsBox=document.getElementById("details-container");
+    detailsBox.innerHTML=`
+     <div>
+            <h2 class="text-2xl font-bold">
+              ${word.word} (<i class="fa-solid fa-microphone"></i>:${word.pronunciation})
+            </h2>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold">Meaning</h2>
+            <p>${word.meaning}</p>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold">Example</h2>
+            <p>${word.sentence}</p>
+          </div>
+          <div class="">
+            <h2 class="text-2xl font-bold">Synonyms</h2>
+             <div class=" gap-x-3">${createElement(word.synonyms)}</div>
+           
+          </div>
+    `;
+    document.getElementById("word_modal").showModal();
+
+}
 const loadLevelWord = (id) => {
+    manageSpinner(true);
   const url = `https://openapi.programming-hero.com/api/level/${id}`;
   fetch(url)
     .then((response) => response.json())
@@ -34,9 +87,11 @@ const displayLevelWord = (words) => {
         <h2 class="font-bold text-4xl">নেক্সট Lesson এ যান</h2>
       </div>
    `;
+   manageSpinner(false);
+   return;
   }
   words.forEach((word) => {
-    console.log(word);
+    // console.log(word);
     const card = document.createElement("div");
     card.innerHTML = `
     <div class="bg-white rounded-xl shadow-sm text-center py-10 px-5 space-y-4">
@@ -44,7 +99,7 @@ const displayLevelWord = (words) => {
         <p class="font-semibold ">Meaning / pronunciation</p>
         <div class="text-2xl font-bangla font-medium">"${word.meaning ? word.meaning : "পাওয়া যায়নি।"}/ ${word.pronunciation ? word.pronunciation : "পাওয়া যায়নি।"}"</div>
         <div class="flex justify-between items-center">
-            <button class="btn text-lg  bg-[#1A91FF10] hover:text-green-500 "><i class="fa-solid fa-circle-info"></i></button>
+            <button onclick="loadWordDetail(${word.id})" class="btn text-lg  bg-[#1A91FF10] hover:text-green-500 "><i class="fa-solid fa-circle-info"></i></button>
             <button class="btn text-lg bg-[#1A91FF10] hover:text-green-500">
         <i class="fa-solid fa-volume-high"></i>
     </button>
@@ -55,6 +110,7 @@ const displayLevelWord = (words) => {
     `;
     wordContainer.append(card);
   });
+  manageSpinner(false);
 };
 const displayLessons = (lessons) => {
   //   1. Get the container and empty
